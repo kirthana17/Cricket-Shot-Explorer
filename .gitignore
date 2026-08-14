@@ -10,12 +10,9 @@ Thumbs.db
 .env
 .streamlit/secrets.toml
 
-models/*.joblib
 models/*.pkl
 models/*.pickle
 
 reports/*.png
 reports/*.jpg
 reports/*.jpeg
-
-data/*.csv
