@@ -1,0 +1,135 @@
+{
+  "best_model": "logistic_regression",
+  "features": [
+    "bat_speed",
+    "impact_height",
+    "ball_length",
+    "ball_line",
+    "timing",
+    "front_foot"
+  ],
+  "label": "shot_type",
+  "random_state": 42,
+  "models": {
+    "logistic_regression": {
+      "accuracy": 0.86,
+      "cv_mean_accuracy": 0.8645,
+      "cv_std": 0.0092,
+      "macro_f1": 0.8593,
+      "confusion_matrix": [
+        [
+          144,
+          0,
+          3,
+          0,
+          0,
+          20
+        ],
+        [
+          0,
+          158,
+          4,
+          0,
+          5,
+          0
+        ],
+        [
+          5,
+          6,
+          127,
+          16,
+          3,
+          9
+        ],
+        [
+          0,
+          0,
+          10,
+          149,
+          1,
+          7
+        ],
+        [
+          0,
+          6,
+          2,
+          0,
+          158,
+          0
+        ],
+        [
+          29,
+          0,
+          10,
+          4,
+          0,
+          124
+        ]
+      ]
+    },
+    "random_forest": {
+      "accuracy": 0.856,
+      "cv_mean_accuracy": 0.8578,
+      "cv_std": 0.0082,
+      "macro_f1": 0.8553,
+      "confusion_matrix": [
+        [
+          142,
+          0,
+          3,
+          0,
+          0,
+          22
+        ],
+        [
+          0,
+          160,
+          2,
+          0,
+          5,
+          0
+        ],
+        [
+          4,
+          5,
+          129,
+          18,
+          2,
+          8
+        ],
+        [
+          0,
+          0,
+          12,
+          149,
+          0,
+          6
+        ],
+        [
+          0,
+          7,
+          3,
+          0,
+          156,
+          0
+        ],
+        [
+          35,
+          0,
+          8,
+          4,
+          0,
+          120
+        ]
+      ]
+    }
+  },
+  "feature_importances": {
+    "bat_speed": 0.0983,
+    "impact_height": 0.1078,
+    "ball_length": 0.283,
+    "ball_line": 0.3906,
+    "timing": 0.0861,
+    "front_foot": 0.0344
+  }
+}

@@ -1,0 +1,131 @@
+from pathlib import Path
+import json
+
+import joblib
+import pandas as pd
+
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    confusion_matrix,
+)
+
+
+ROOT = Path(__file__).resolve().parent.parent
+
+DATA_PATH = ROOT / "data" / "shots.csv"
+MODEL_PATH = ROOT / "models" / "model.joblib"
+
+FEATURES = [
+    "bat_speed",
+    "impact_height",
+    "ball_length",
+    "ball_line",
+    "timing",
+    "front_foot",
+]
+
+LABEL = "shot_type"
+
+
+def evaluate():
+
+    if not DATA_PATH.exists():
+        raise FileNotFoundError(
+            "Dataset not found."
+        )
+
+    if not MODEL_PATH.exists():
+        raise FileNotFoundError(
+            "Model not found. Run `python src/models` first."
+        )
+
+    df = pd.read_csv(DATA_PATH)
+
+    artifact = joblib.load(
+        MODEL_PATH
+    )
+
+    model = artifact["model"]
+
+    X = df[FEATURES].copy()
+
+    y = df[LABEL]
+
+    predictions = model.predict(
+        X
+    )
+
+    labels = sorted(
+        y.unique()
+    )
+
+    accuracy = accuracy_score(
+        y,
+        predictions,
+    )
+
+    report = classification_report(
+        y,
+        predictions,
+        labels=labels,
+        output_dict=True,
+        zero_division=0,
+    )
+
+    cm = confusion_matrix(
+        y,
+        predictions,
+        labels=labels,
+    )
+
+    result = {
+        "accuracy": round(
+            float(accuracy),
+            4,
+        ),
+        "macro_f1": round(
+            float(
+                report["macro avg"][
+                    "f1-score"
+                ]
+            ),
+            4,
+        ),
+        "confusion_matrix": cm.tolist(),
+        "classification_report": report,
+    }
+
+    output_path = (
+        ROOT
+        / "reports"
+        / "evaluation_results.json"
+    )
+
+    output_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    with output_path.open(
+        "w",
+        encoding="utf-8",
+    ) as file:
+
+        json.dump(
+            result,
+            file,
+            indent=2,
+        )
+
+    print(
+        f"Evaluation accuracy: {accuracy:.2%}"
+    )
+
+    print(
+        f"Evaluation results saved to: {output_path}"
+    )
+
+
+if __name__ == "__main__":
+    evaluate()

@@ -1,0 +1,345 @@
+from pathlib import Path
+import json
+
+import joblib
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    confusion_matrix,
+)
+from sklearn.model_selection import (
+    cross_val_score,
+    train_test_split,
+)
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+
+
+ROOT = Path(__file__).resolve().parent.parent
+
+DATA_PATH = ROOT / "data" / "shots.csv"
+MODEL_PATH = ROOT / "models" / "model.joblib"
+METRICS_PATH = ROOT / "reports" / "metrics.json"
+FIGURE_PATH = ROOT / "reports" / "confusion_matrix.png"
+
+RANDOM_STATE = 42
+
+FEATURES = [
+    "bat_speed",
+    "impact_height",
+    "ball_length",
+    "ball_line",
+    "timing",
+    "front_foot",
+]
+
+LABEL = "shot_type"
+
+
+def load_data():
+
+    if not DATA_PATH.exists():
+        raise FileNotFoundError(
+            "Dataset not found. Run `python src/data` first."
+        )
+
+    df = pd.read_csv(DATA_PATH)
+
+    X = df[FEATURES].copy()
+    y = df[LABEL]
+
+    X["front_foot"] = (
+        X["front_foot"].astype(int)
+    )
+
+    return X, y
+
+
+def build_models():
+
+    return {
+        "logistic_regression": Pipeline(
+            [
+                (
+                    "scaler",
+                    StandardScaler(),
+                ),
+                (
+                    "classifier",
+                    LogisticRegression(
+                        max_iter=1000,
+                        random_state=RANDOM_STATE,
+                    ),
+                ),
+            ]
+        ),
+
+        "random_forest": Pipeline(
+            [
+                (
+                    "classifier",
+                    RandomForestClassifier(
+                        n_estimators=300,
+                        min_samples_leaf=2,
+                        random_state=RANDOM_STATE,
+                        n_jobs=-1,
+                    ),
+                )
+            ]
+        ),
+    }
+
+
+def save_confusion_matrix(
+    cm,
+    labels,
+):
+
+    FIGURE_PATH.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    fig, ax = plt.subplots(
+        figsize=(8, 6)
+    )
+
+    sns.heatmap(
+        cm,
+        annot=True,
+        fmt="d",
+        cmap="Blues",
+        xticklabels=labels,
+        yticklabels=labels,
+        ax=ax,
+    )
+
+    ax.set_xlabel("Predicted")
+    ax.set_ylabel("Actual")
+    ax.set_title(
+        "Cricket Shot Classification"
+    )
+
+    plt.tight_layout()
+
+    fig.savefig(
+        FIGURE_PATH,
+        dpi=150,
+    )
+
+    plt.close(fig)
+
+
+def main():
+
+    X, y = load_data()
+
+    labels = sorted(
+        y.unique()
+    )
+
+    X_train, X_test, y_train, y_test = (
+        train_test_split(
+            X,
+            y,
+            test_size=0.20,
+            random_state=RANDOM_STATE,
+            stratify=y,
+        )
+    )
+
+    models = build_models()
+
+    results = {}
+
+    for name, model in models.items():
+
+        print(
+            f"Training {name}..."
+        )
+
+        model.fit(
+            X_train,
+            y_train,
+        )
+
+        predictions = model.predict(
+            X_test
+        )
+
+        accuracy = accuracy_score(
+            y_test,
+            predictions,
+        )
+
+        cv_scores = cross_val_score(
+            model,
+            X_train,
+            y_train,
+            cv=5,
+            scoring="accuracy",
+        )
+
+        report = classification_report(
+            y_test,
+            predictions,
+            labels=labels,
+            output_dict=True,
+            zero_division=0,
+        )
+
+        cm = confusion_matrix(
+            y_test,
+            predictions,
+            labels=labels,
+        )
+
+        results[name] = {
+            "accuracy": round(
+                float(accuracy),
+                4,
+            ),
+            "cv_mean_accuracy": round(
+                float(cv_scores.mean()),
+                4,
+            ),
+            "cv_std": round(
+                float(cv_scores.std()),
+                4,
+            ),
+            "macro_f1": round(
+                float(
+                    report["macro avg"][
+                        "f1-score"
+                    ]
+                ),
+                4,
+            ),
+            "confusion_matrix": cm.tolist(),
+        }
+
+    logistic_accuracy = results[
+        "logistic_regression"
+    ]["accuracy"]
+
+    forest_accuracy = results[
+        "random_forest"
+    ]["accuracy"]
+
+    if (
+        forest_accuracy
+        - logistic_accuracy
+        > 0.01
+    ):
+        best_name = "random_forest"
+    else:
+        best_name = "logistic_regression"
+
+    best_model = models[
+        best_name
+    ]
+
+    best_model.fit(
+        X_train,
+        y_train,
+    )
+
+    forest = models[
+        "random_forest"
+    ]
+
+    forest.fit(
+        X_train,
+        y_train,
+    )
+
+    feature_importances = {
+        feature: round(
+            float(value),
+            4,
+        )
+        for feature, value in zip(
+            FEATURES,
+            forest.named_steps[
+                "classifier"
+            ].feature_importances_,
+        )
+    }
+
+    MODEL_PATH.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    joblib.dump(
+        {
+            "model": best_model,
+            "model_name": best_name,
+            "features": FEATURES,
+            "labels": labels,
+        },
+        MODEL_PATH,
+    )
+
+    best_predictions = (
+        best_model.predict(X_test)
+    )
+
+    best_cm = confusion_matrix(
+        y_test,
+        best_predictions,
+        labels=labels,
+    )
+
+    save_confusion_matrix(
+        best_cm,
+        labels,
+    )
+
+    METRICS_PATH.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    metrics = {
+        "best_model": best_name,
+        "features": FEATURES,
+        "label": LABEL,
+        "random_state": RANDOM_STATE,
+        "models": results,
+        "feature_importances": feature_importances,
+    }
+
+    with METRICS_PATH.open(
+        "w",
+        encoding="utf-8",
+    ) as file:
+
+        json.dump(
+            metrics,
+            file,
+            indent=2,
+        )
+
+    print(
+        f"Selected model: {best_name}"
+    )
+
+    print(
+        f"Test accuracy: "
+        f"{results[best_name]['accuracy']:.2%}"
+    )
+
+    print(
+        f"Model saved to: {MODEL_PATH}"
+    )
+
+
+if __name__ == "__main__":
+    main()
