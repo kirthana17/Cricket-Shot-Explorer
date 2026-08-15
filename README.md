@@ -322,18 +322,10 @@ Cricket-Shot-Explorer/
 ├── .gitignore
 ├── requirements.txt
 │
-├── app/
-│   ├── assets/
-│   ├── components/
-│   └── pages/
-│
 ├── configs/
 │   └── config.py
 │
 ├── data/
-│   ├── external/
-│   ├── processed/
-│   ├── raw/
 │   └── shots.csv
 │
 ├── docs/
@@ -350,19 +342,29 @@ Cricket-Shot-Explorer/
 │   └── 01_eda.ipynb
 │
 ├── reports/
+│   ├── metrics.json
 │   ├── evaluation_results.json
-│   └── metrics.json
+│   ├── class_distribution.png
+│   ├── bat_speed_distribution.png
+│   ├── impact_height_distribution.png
+│   ├── ball_length_distribution.png
+│   ├── ball_line_distribution.png
+│   ├── timing_distribution.png
+│   ├── front_foot_distribution.png
+│   ├── correlation_matrix.png
+│   └── confusion_matrix.png
 │
 ├── src/
-│   ├── data/
-│   ├── evaluation/
-│   ├── features/
-│   ├── models/
-│   ├── utils/
-│   └── visualization/
+│   ├── data.py
+│   ├── evaluation.py
+│   ├── features.py
+│   ├── models.py
+│   ├── utils.py
+│   └── visualize.py
 │
 └── tests/
     └── test_project.py
+
 ⚙️ Technology Stack
 Programming Language
 Python
