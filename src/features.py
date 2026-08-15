@@ -97,3 +97,8 @@ def validate_prediction_input(df):
         raise ValueError(
             "timing must be between 0 and 1."
         )
+
+    if not df["front_foot"].isin([0, 1]).all():
+        raise ValueError(
+            "front_foot must be either 0 or 1."
+        )

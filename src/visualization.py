@@ -24,7 +24,7 @@ def load_data():
 
     if not DATA_PATH.exists():
         raise FileNotFoundError(
-            "Dataset not found. Run `python src/data` first."
+            "Dataset not found. Run `python src/data.py` first."
         )
 
     return pd.read_csv(
