@@ -1,140 +1,256 @@
-# Data Dictionary — Cricket Shot Explorer
+# Data Dictionary — Cricket Shot Explorer 
+ 
+This document describes the synthetic structured dataset used by the Cricket Shot Explorer machine-learning pipeline. 
+ 
+The dataset is generated programmatically by `src/data.py` and contains 5,000 observations representing six predefined cricket shot classes. 
+ 
+> **Note:** The dataset is synthetic and is intended for machine-learning pipeline development and demonstration. It does not represent real-world cricket biomechanics or match data. 
+ 
+--- 
+ 
+## Dataset Overview 
+ 
+| Property | Value | 
+|---|---| 
+| Number of observations | 5,000 | 
+| Input features | 6 | 
+| Target variable | `shot_type` | 
+| Number of classes | 6 | 
+| Dataset type | Synthetic structured data | 
+| Task | Multi-class classification | 
+| Random seed | 42 | 
+ 
+--- 
+ 
+## Columns 
+ 
+| Column | Description | Unit / Type | Example | 
+|---|---|---|---| 
+| `bat_speed` | Speed of the bat during the shot | km/h | `95` | 
+| `impact_height` | Height of bat-ball impact | cm | `35` | 
+| `ball_length` | Length of the delivered ball | m | `3.2` | 
+| `ball_line` | Horizontal position of the delivery relative to the stumps | cm | `55` | 
+| `timing` | Timing quality of the shot | 0–1 | `0.75` | 
+| `front_foot` | Whether the batter uses the front foot | Binary (0/1) | `1` | 
+| `shot_type` | Target class representing the shot played | Categorical | `cover_drive` | 
+ 
+--- 
+ 
+## Feature Interpretation 
+ 
+### `bat_speed` 
+ 
+Represents the estimated speed of the bat during the shot. 
+ 
+Higher values generally represent more aggressive shots within the synthetic dataset. 
+ 
+### `impact_height` 
+ 
+Represents the approximate height at which bat-ball contact occurs. 
+ 
+### `ball_length` 
+ 
+Represents the approximate length of the delivery. 
+ 
+Smaller values represent fuller deliveries, while larger values represent shorter deliveries. 
+ 
+### `ball_line` 
+ 
+Represents the horizontal position of the delivery relative to the stumps. 
+ 
+- `0` = approximately around the stumps 
+- Positive values = off side 
+- Negative values = leg side 
+ 
+### `timing` 
+ 
+Represents the quality of shot timing on a normalized scale. 
+ 
+`0 ≤ timing ≤ 1` 
+ 
+### `front_foot` 
+ 
+Binary feature indicating front-foot usage. 
+ 
+- `0` = not front foot 
+- `1` = front foot 
+ 
+--- 
+ 
+## Shot Classes 
+ 
+The target variable `shot_type` contains six classes: 
+ 
+- `cover_drive` 
+- `straight_drive` 
+- `flick` 
+- `pull` 
+- `cut` 
+- `defensive` 
+ 
+--- 
+ 
+## Synthetic Shot Profiles 
+ 
+The following profiles are implemented in `src/data.py`. 
+ 
+Values for numerical features are represented as mean (standard deviation). 
+ 
+`front_foot` represents the probability of front-foot usage. 
+ 
+| Shot Type | Bat Speed | Impact Height | Ball Length | Ball Line | Timing | Front Foot | 
+|---|---:|---:|---:|---:|---:|---:| 
+| `cover_drive` | 95 (10) | 35 (12) | 3.2 (0.5) | +55 (20) | 0.75 (0.12) | 90% | 
+| `straight_drive` | 93 (11) | 38 (12) | 3.0 (0.5) | +15 (18) | 0.76 (0.12) | 92% | 
+| `flick` | 88 (12) | 48 (14) | 3.8 (0.6) | -45 (22) | 0.72 (0.14) | 65% | 
+| `pull` | 98 (12) | 72 (16) | 6.5 (0.7) | -10 (25) | 0.70 (0.15) | 20% | 
+| `cut` | 91 (11) | 68 (15) | 6.0 (0.7) | +65 (25) | 0.73 (0.14) | 25% | 
+| `defensive` | 75 (15) | 40 (15) | 4.2 (0.9) | +10 (30) | 0.55 (0.18) | 70% | 
+ 
+--- 
+ 
+## Feature Bounds 
+ 
+Generated values are clipped to the following ranges: 
+ 
+| Feature | Minimum | Maximum | 
+|---|---:|---:| 
+| `bat_speed` | 20 | 150 | 
+| `impact_height` | 0 | 180 | 
+| `ball_length` | 0.5 | 11 | 
+| `ball_line` | -120 | 160 | 
+| `timing` | 0 | 1 | 
+| `front_foot` | 0 | 1 | 
+ 
+--- 
+ 
+## Data Generation 
+ 
+The dataset is generated using: 
+ 
+1. Class-specific feature profiles. 
+2. Normal distributions for numerical features. 
+3. Bernoulli sampling for `front_foot`. 
+4. Feature-range clipping. 
+5. Numerical rounding. 
+6. Class labeling. 
+7. Random shuffling. 
+ 
+The generator uses: 
+ 
+```python
+RANDOM_STATE = 42
+N_ROWS = 5000
 
-This is the design document for the synthetic dataset. For each of the six
-shot types, it defines the typical value and rough spread of all six features.
+The generated dataset is saved to:
 
-The Python generator mirrors these values. If a value is changed here, the
-corresponding value in `src/generate_data.py` must also be changed.
+`data/shots.csv`
 
 ---
 
-## Columns
+## Class Distribution
 
-| Column | Meaning | Unit | Example |
-| `bat_speed` | Bat speed at impact | km/h | 95 |
-| `impact_height` | Height of ball contact off the ground | cm | 35 |
-| `ball_length` | How far from the batter the ball pitched | m | 3.2 |
-| `ball_line` | Sideways position vs the stumps (+ = off side) | cm | 55 |
-| `timing` | How well-timed the shot was | 0–1 | 0.78 |
-| `front_foot` | Whether the batter stepped forward | true/false | true |
-| `shot_type` | Target label — the shot played | text | `cover_drive` |
+The dataset is approximately balanced across the six classes.
 
-### Reading `ball_length`
+With 5,000 observations distributed across six classes, each class contains approximately 833 or 834 observations.
 
-Small values represent full deliveries pitched close to the batter.
-
-Large values represent shorter deliveries.
-
-### Reading `ball_line`
-
-- `0` = approximately at the stumps
-- Positive = off side
-- Negative = leg side
+This provides a balanced classification dataset for model development and comparison.
 
 ---
 
-## Shot Profiles
+## Intentional Class Overlap
 
-Each numerical cell contains:
-
-**typical value (spread)**
-
-The spread represents the standard deviation.
-
-`front_foot` is represented as a probability.
-
-| Shot Type | Bat Speed | Impact Height | Ball Length | Ball Line | Timing | Front Foot |
-| `cover_drive` | 95 (12) | 35 (14) | 3.3 (0.6) | +52 (23) | 0.75 (0.12) | 87% |
-| `straight_drive` | 92 (13) | 32 (13) | 3.3 (0.6) | +8 (21) | 0.77 (0.12) | 87% |
-| `pull` | 102 (14) | 94 (23) | 7.1 (1.1) | 0 (30) | 0.70 (0.15) | 12% |
-| `cut` | 96 (14) | 75 (21) | 6.8 (1.1) | +70 (26) | 0.72 (0.14) | 18% |
-| `flick` | 83 (14) | 33 (15) | 3.8 (0.7) | −32 (23) | 0.74 (0.13) | 60% |
-| `defensive` | 55 (16) | 37 (18) | 4.5 (1.4) | +14 (28) | 0.61 (0.17) | 56% |
-
----
-
-## Reasoning
-
-### Cover Drive
-
-A full delivery outside off is driven through the covers, generally with
-a front-foot movement and a full bat swing.
-
-### Straight Drive
-
-A straight drive has a similar profile to a cover drive on most features,
-but the delivery line is closer to the stumps.
-
-This intentional similarity makes it one of the hardest classes to distinguish.
-
-### Pull
-
-A pull is generally played against a short delivery. It has a high contact
-point, relatively high bat speed, and is usually played from the back foot.
-
-### Cut
-
-A cut is generally played against a short and wide delivery outside off.
-It shares some characteristics with the pull but differs in ball line and
-impact height.
-
-### Flick
-
-A flick is generally played toward the leg side against a fuller delivery.
-Its ball line is therefore shifted toward the negative/leg-side region.
-
-### Defensive
-
-A defensive shot is controlled rather than aggressively hit. Its most useful
-separator in this synthetic dataset is relatively low bat speed.
-
----
-
-## Deliberate Overlap
-
-The dataset intentionally contains overlap between similar classes.
+The synthetic dataset intentionally contains overlapping feature distributions between similar shot types.
 
 Important overlaps include:
 
-1. `cover_drive` ↔ `straight_drive`
-2. `straight_drive` ↔ `flick`
-3. `defensive` ↔ `flick`
+1. `cover_drive` and `straight_drive`
+2. `flick` and `defensive`
+3. `pull` and `cut`
 
-This is intentional.
-
-The internship brief warns that approximately 99% accuracy would indicate that
-the synthetic classes are too cleanly separated.
-
-The final dataset produced approximately 83.5% test accuracy.
+This prevents the synthetic classification problem from becoming unrealistically easy and allows meaningful model comparison and evaluation.
 
 ---
 
-## Sampling Rules
+## Data Quality
 
-- Numeric features are sampled from normal distributions.
-- `front_foot` is sampled using a Bernoulli probability.
-- A fixed random seed of `42` is used.
-- Values are clipped to sensible ranges.
-- Rows are shuffled before writing the CSV.
+The generated dataset is validated for:
 
-### Feature Bounds
+- Required feature columns
+- Correct number of observations
+- Presence of all six shot classes
+- Missing values
+- Valid feature ranges
+- Valid binary `front_foot` values
 
-| Feature | Minimum | Maximum |
-| `bat_speed` | 20 | 150 |
-| `impact_height` | 0 | 180 |
-| `ball_length` | 0.5 | 11 |
-| `ball_line` | −120 | 160 |
-| `timing` | 0 | 1 |
+These properties are also verified by the automated tests in:
+
+`tests/test_project.py`
 
 ---
 
-## Known Limitation
+## Dataset Limitations
 
-Features are sampled independently within each shot class.
+This dataset is synthetic and should not be interpreted as real cricket biomechanical data.
 
-In real cricket, features would have relationships with one another.
+The current generator does not model:
 
-For example, bat speed and timing may be correlated.
+- Player-specific characteristics
+- Bat trajectory
+- Ball trajectory
+- Player pose
+- Match context
+- Bowling speed
+- Spin
+- Real sensor measurements
+- Video information
 
-Therefore this dataset is useful for demonstrating an ML pipeline but does
-not represent real cricket biomechanics.
+The numerical features are generated from predefined statistical profiles. Therefore, the dataset is primarily intended to demonstrate an end-to-end machine-learning workflow.
+
+---
+
+## Model Evaluation Reference
+
+The machine-learning pipeline uses an 80/20 stratified train-test split.
+
+- Training set: 4,000 observations
+- Test set: 1,000 observations
+
+The selected Logistic Regression model achieved:
+
+| Metric | Result |
+|---|---:|
+| Test Accuracy | 86.00% |
+| Macro F1 | 0.8593 |
+
+Five-fold cross-validation during model development achieved approximately 86.5% mean accuracy for Logistic Regression.
+
+These results describe performance on the synthetic dataset and should not be interpreted as real-world cricket-shot prediction accuracy.
+
+---
+
+## Source Files
+
+Dataset generation:
+
+`src/data.py`
+
+Dataset:
+
+`data/shots.csv`
+
+Feature processing:
+
+`src/features.py`
+
+Model training:
+
+`src/models.py`
+
+Evaluation:
+
+`src/evaluation.py`
+
+Testing:
+
+`tests/test_project.py`

@@ -13,6 +13,3 @@ Thumbs.db
 models/*.pkl
 models/*.pickle
 
-reports/*.png
-reports/*.jpg
-reports/*.jpeg

@@ -35,12 +35,14 @@ shot types from six measurable input features.
 ## In Scope
 
 - Synthetic data generation
-- EDA
+- Exploratory data analysis
 - Classification
-- Evaluation
+- Model evaluation
+- Model comparison
 - Streamlit dashboard
-- Testing
-- Deployment
+- Automated testing
+- Deployment readiness
+- Documentation
 
 ## Out of Scope
 
@@ -55,7 +57,7 @@ shot types from six measurable input features.
 - Six predefined features.
 - Six predefined shot classes.
 - Synthetic data only.
-- Approximately 5,000 observations.
+- Exactly 5,000 observations.
 - Limited project timeline.
 
 ## Stakeholders
