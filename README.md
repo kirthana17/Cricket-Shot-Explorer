@@ -338,9 +338,6 @@ Cricket-Shot-Explorer/
 ├── models/
 │   └── model.joblib
 │
-├── notebooks/
-│   └── 01_eda.ipynb
-│
 ├── reports/
 │   ├── metrics.json
 │   ├── evaluation_results.json
@@ -422,13 +419,6 @@ pytest
 For more detailed output:
 
 pytest -v
-📓 Running the EDA Notebook
-
-The exploratory analysis notebook is located at:
-
-notebooks/01_eda.ipynb
-
-The notebook contains the exploratory analysis used to understand the dataset and its feature relationships.
 
 📦 Model Artifact
 
